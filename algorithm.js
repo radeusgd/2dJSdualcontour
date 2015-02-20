@@ -18,8 +18,8 @@ function initializeArrays(){
       verticalEdges[i] = [];
       horizontalEdges[i] = [];
       for(j=0;j<gridHeight-1;j++){
-         verticalEdges[i][j]=null;//no intersection
-         horizontalEdges[i][j]=null;//no intersection
+         verticalEdges[i][j]={p:0,nx:0,ny:0};//no intersection
+         horizontalEdges[i][j]={p:0,nx:0,ny:0};//no intersection
       }
    }
 }
