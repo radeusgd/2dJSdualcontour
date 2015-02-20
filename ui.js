@@ -51,6 +51,42 @@ function makeClickHandler(x,y){
    });
 }
 
+function addNormal(parent, vx,vy){
+   parent.normal = game.add.graphics(0,0);
+   parent.normal.handle = game.add.sprite(vx,vy,'normal');
+   parent.normal.handle.origin={x:0.5,y:0.5};
+   parent.normal.refreshLine=function(x,y){
+      drawLine(parent.normal,4,0xFF0000,5,5,x,y);
+   };
+   parent.normal.handle.vx=vx;
+   parent.normal.handle.vy=vy;
+   parent.normal.refreshLine(vx,vy);
+   parent.normal.handle.update = function(){
+      parent.normal.x=parent.handle.x;
+      parent.normal.y=parent.handle.y;
+      parent.normal.handle.x=parent.handle.x+parent.normal.handle.vx;
+      parent.normal.handle.y=parent.handle.y+parent.normal.handle.vy;
+      if(parent.normal.handle.dragging){
+         var vx=game.input.x-parent.normal.x,vy=game.input.y-parent.normal.y;
+         var len=Math.sqrt(vx*vx+vy*vy);
+         vx=32*vx/len;
+         vy=32*vy/len;
+         parent.normal.handle.vx=vx;
+         parent.normal.handle.vy=vy;
+         parent.normal.handle.x=parent.normal.x+vx;
+         parent.normal.handle.y=parent.normal.y+vy;
+         parent.normal.refreshLine(parent.normal.handle.x-parent.normal.x+5,parent.normal.handle.y-parent.normal.y+5);
+      }
+   };
+   parent.normal.handle.inputEnabled=true;
+   parent.normal.handle.events.onInputDown.add(function(){
+      parent.normal.handle.dragging=true;
+   });
+   parent.normal.handle.events.onInputUp.add(function(){
+      parent.normal.handle.dragging=false;
+   });
+}
+
 function addEdge(x,y,isVertical){
    if(isVertical){
       verticalEdgePoints[x][y] = game.add.graphics(x*64,y*64);
@@ -69,6 +105,7 @@ function addEdge(x,y,isVertical){
          if(verticalEdgePoints[x][y].handle.dragging){
             verticalEdgePoints[x][y].handle.y=clamp(game.input.y,y*64,y*64+64);
             verticalEdgePoints[x][y].handle.refreshLine();
+            //TODO update ALGO
          }
       };
       verticalEdgePoints[x][y].handle.refreshLine();
@@ -78,6 +115,12 @@ function addEdge(x,y,isVertical){
       verticalEdgePoints[x][y].handle.events.onInputUp.add(function(){
          verticalEdgePoints[x][y].handle.dragging=false;
       });
+      if(values[x][y]>0){
+         addNormal(verticalEdgePoints[x][y],0,32);
+      }
+      else{
+         addNormal(verticalEdgePoints[x][y],0,-32);
+      }
    }else{
       horizontalEdgePoints[x][y] = game.add.graphics(x*64,y*64);
       //drawLine(verticalEdgePoints[x][y],)
@@ -95,6 +138,7 @@ function addEdge(x,y,isVertical){
          if(horizontalEdgePoints[x][y].handle.dragging){
             horizontalEdgePoints[x][y].handle.x=clamp(game.input.x,x*64,x*64+64);
             horizontalEdgePoints[x][y].handle.refreshLine();
+            //TODO update ALGO
          }
       };
       horizontalEdgePoints[x][y].handle.refreshLine();
@@ -104,17 +148,27 @@ function addEdge(x,y,isVertical){
       horizontalEdgePoints[x][y].handle.events.onInputUp.add(function(){
          horizontalEdgePoints[x][y].handle.dragging=false;
       });
+      if(values[x][y]>0){
+         addNormal(horizontalEdgePoints[x][y],32,0);
+      }
+      else{
+         addNormal(horizontalEdgePoints[x][y],-32,0);
+      }
    }
 }
 
 function removeEdge(x,y,isVertical){
    if(isVertical){
       verticalEdgePoints[x][y].handle.destroy(true);
+      verticalEdgePoints[x][y].normal.handle.destroy(true);
+      verticalEdgePoints[x][y].normal.destroy(true);
       verticalEdgePoints[x][y].destroy(true);
       verticalEdgePoints[x][y]=null;
       //TODO normal vector
    }else{
       horizontalEdgePoints[x][y].handle.destroy(true);
+      horizontalEdgePoints[x][y].normal.handle.destroy(true);
+      horizontalEdgePoints[x][y].normal.destroy(true);
       horizontalEdgePoints[x][y].destroy(true);
    }
 }
@@ -159,6 +213,7 @@ window.onload = function() {
    function preload () {
       game.load.spritesheet('dots', 'dot.png', 20, 20);
       game.load.spritesheet('handle', 'handle.png', 20, 20);
+      game.load.spritesheet('normal', 'normal.png', 20, 20);
    }
    function create () {
       initializeArrays();
