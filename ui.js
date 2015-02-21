@@ -38,6 +38,11 @@ function updateGraphics(x,y){
    else{
       removeEdge(x-1,y,false);
    }
+
+   updateGrid(x-1,y-1);
+   updateGrid(x-1,y);
+   updateGrid(x,y-1);
+   updateGrid(x,y);
 }
 
 function makeClickHandler(x,y){
@@ -85,6 +90,7 @@ function addNormal(parent, tx,ty,isVertical,vx,vy){
             horizontalEdges[tx][ty].nx=vx;
             horizontalEdges[tx][ty].ny=vy;
          }
+         updateEdge(tx,ty,isVertical);
       }
    };
    parent.normal.handle.inputEnabled=true;
@@ -115,6 +121,7 @@ function addEdge(x,y,isVertical){
             verticalEdgePoints[x][y].handle.y=clamp(game.input.y,y*64,y*64+64);
             verticalEdgePoints[x][y].handle.refreshLine();
             verticalEdges[x][y].p = verticalEdgePoints[x][y].handle.y-y*64;//updating ALGO
+            updateEdge(x,y,isVertical);
          }
       };
       verticalEdgePoints[x][y].handle.refreshLine();
@@ -148,6 +155,7 @@ function addEdge(x,y,isVertical){
             horizontalEdgePoints[x][y].handle.x=clamp(game.input.x,x*64,x*64+64);
             horizontalEdgePoints[x][y].handle.refreshLine();
             horizontalEdges[x][y].p = horizontalEdgePoints[x][y].handle.x-x*64;//updating ALGO
+            updateEdge(x,y,isVertical);
          }
       };
       horizontalEdgePoints[x][y].handle.refreshLine();
