@@ -1,10 +1,6 @@
 var grid=[];//arrays for values and edges
 var verticalEdgePoints=[], horizontalEdgePoints=[];
 
-function clamp(num, min, max) {
-   return num < min ? min : (num > max ? max : num);
-}
-
 function drawLine(gfx,width,color, x1,y1, x2,y2){
    gfx.clear();
    gfx.lineStyle(width,color,1);
@@ -100,6 +96,13 @@ function addNormal(parent, tx,ty,isVertical,vx,vy){
    parent.normal.handle.events.onInputUp.add(function(){
       parent.normal.handle.dragging=false;
    });
+   if(isVertical){
+      verticalEdges[tx][ty].nx=vx;
+      verticalEdges[tx][ty].ny=vy;
+   }else{
+      horizontalEdges[tx][ty].nx=vx;
+      horizontalEdges[tx][ty].ny=vy;
+   }
 }
 
 function addEdge(x,y,isVertical){
@@ -120,7 +123,7 @@ function addEdge(x,y,isVertical){
          if(verticalEdgePoints[x][y].handle.dragging){
             verticalEdgePoints[x][y].handle.y=clamp(game.input.y,y*64,y*64+64);
             verticalEdgePoints[x][y].handle.refreshLine();
-            verticalEdges[x][y].p = verticalEdgePoints[x][y].handle.y-y*64;//updating ALGO
+            verticalEdges[x][y].p = (verticalEdgePoints[x][y].handle.y-y*64)/64.0;//updating ALGO
             updateEdge(x,y,isVertical);
          }
       };
@@ -154,7 +157,7 @@ function addEdge(x,y,isVertical){
          if(horizontalEdgePoints[x][y].handle.dragging){
             horizontalEdgePoints[x][y].handle.x=clamp(game.input.x,x*64,x*64+64);
             horizontalEdgePoints[x][y].handle.refreshLine();
-            horizontalEdges[x][y].p = horizontalEdgePoints[x][y].handle.x-x*64;//updating ALGO
+            horizontalEdges[x][y].p = (horizontalEdgePoints[x][y].handle.x-x*64)/64.0;//updating ALGO
             updateEdge(x,y,isVertical);
          }
       };
@@ -203,6 +206,9 @@ function initializeUI(){
    }
    for(i=0;i<gridWidth;i++){
       grid[i] = [];
+      vertices[i] = [];
+      linesV[i] = [];
+      linesH[i] = [];
       for(j=0;j<gridHeight;j++){
          grid[i][j]=game.add.sprite(i*64,j*64,'dots',1);
          grid[i][j].inputEnabled=true;
@@ -249,3 +255,30 @@ window.onload = function() {
       //game.debug.text(game.time.fps || '--', 2, 14, "#00ff00");
    }
 };
+
+var vertices = [];
+var linesV = [];
+var linesH = [];
+
+function renderer_updatePosition(x,y,px,py){
+   /*if(vertices[x][y]){
+      vertices[x][y].destroy(true);
+   }
+   vertices[x][y] = game.add.sprite(x*64+px*64,y*64+py*64,'handle');*/
+}
+
+function renderer_removeEdge(x,y,v){
+   if(v){ lines=linesV; }
+   else { lines=linesH; }
+   if(lines[x][y]){
+      lines[x][y].clear();
+   }
+}
+function renderer_updateEdge(x,y,v,x1,y1,x2,y2){
+   if(v){ lines=linesV; }
+   else { lines=linesH; }
+   if(!lines[x][y]){
+      lines[x][y] = game.add.graphics(0,0);
+   }
+   drawLine(lines[x][y],4,0x000000,x1,y1,x2,y2);
+}
