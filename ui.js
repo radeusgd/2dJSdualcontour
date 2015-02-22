@@ -53,27 +53,26 @@ function makeClickHandler(x,y){
 }
 var rad = 50.0;
 function addNormal(parent, tx,ty,isVertical,vx,vy){
+   var ll=vx*vx+vy*vy;
+   vx=rad*vx/ll;
+   vy=rad*vy/ll;
    parent.normal = game.add.graphics(tx*64,ty*64);
    parent.normal.handle = game.add.sprite(vx,vy,'normal');
    parent.normal.handle.origin={x:0.5,y:0.5};
    parent.normal.refreshLine=function(x,y){
-      drawLine(parent.normal,1,0xFF0000,5,5,x,y);
+      drawLine(parent.normal,1,0xFF0000,5,5,x+5,y+5);
    };
    if(isVertical){
-      verticalEdges[tx][ty].nx=vx;
-      verticalEdges[tx][ty].ny=vy;
+      verticalEdges[tx][ty].nx=vx/rad;
+      verticalEdges[tx][ty].ny=vy/rad;
    }else{
-      horizontalEdges[tx][ty].nx=vx;
-      horizontalEdges[tx][ty].ny=vy;
+      horizontalEdges[tx][ty].nx=vx/rad;
+      horizontalEdges[tx][ty].ny=vy/rad;
    }
    parent.normal.handle.vx=vx;
    parent.normal.handle.vy=vy;
    parent.normal.refreshLine(vx,vy);
    parent.normal.handle.update = function(){
-      parent.normal.x=parent.handle.x;
-      parent.normal.y=parent.handle.y;
-      parent.normal.handle.x=parent.handle.x+parent.normal.handle.vx;
-      parent.normal.handle.y=parent.handle.y+parent.normal.handle.vy;
       if(parent.normal.handle.dragging){
          var vx=game.input.x-parent.normal.x,vy=game.input.y-parent.normal.y;
          var len=Math.sqrt(vx*vx+vy*vy);
@@ -83,7 +82,7 @@ function addNormal(parent, tx,ty,isVertical,vx,vy){
          parent.normal.handle.vy=vy;
          parent.normal.handle.x=parent.normal.x+vx;
          parent.normal.handle.y=parent.normal.y+vy;
-         parent.normal.refreshLine(parent.normal.handle.x-parent.normal.x+5,parent.normal.handle.y-parent.normal.y+5);
+         parent.normal.refreshLine(parent.normal.handle.x-parent.normal.x,parent.normal.handle.y-parent.normal.y);
 
          //updating ALGO
          if(isVertical){
@@ -95,6 +94,10 @@ function addNormal(parent, tx,ty,isVertical,vx,vy){
          }
          updateEdge(tx,ty,isVertical);
       }
+      parent.normal.x=parent.handle.x;
+      parent.normal.y=parent.handle.y;
+      parent.normal.handle.x=parent.handle.x+parent.normal.handle.vx;
+      parent.normal.handle.y=parent.handle.y+parent.normal.handle.vy;
    };
    parent.normal.handle.inputEnabled=true;
    parent.normal.handle.events.onInputDown.add(function(){
@@ -103,6 +106,7 @@ function addNormal(parent, tx,ty,isVertical,vx,vy){
    parent.normal.handle.events.onInputUp.add(function(){
       parent.normal.handle.dragging=false;
    });
+   parent.normal.handle.dragging=false;
 }
 
 function addEdge(x,y,isVertical){
@@ -136,10 +140,10 @@ function addEdge(x,y,isVertical){
          verticalEdgePoints[x][y].handle.dragging=false;
       });
       if(values[x][y]>0){
-         addNormal(verticalEdgePoints[x][y],x,y,true,0,rad);
+         addNormal(verticalEdgePoints[x][y],x,y,true,0.01,1);
       }
       else{
-         addNormal(verticalEdgePoints[x][y],x,y,true,0,-rad);
+         addNormal(verticalEdgePoints[x][y],x,y,true,0.01,-1);
       }
    }else{
       horizontalEdgePoints[x][y] = game.add.graphics(x*64,y*64);
@@ -171,10 +175,10 @@ function addEdge(x,y,isVertical){
          horizontalEdgePoints[x][y].handle.dragging=false;
       });
       if(values[x][y]>0){
-         addNormal(horizontalEdgePoints[x][y],x,y,false,rad,0);
+         addNormal(horizontalEdgePoints[x][y],x,y,false,1,0.01);
       }
       else{
-         addNormal(horizontalEdgePoints[x][y],x,y,false,-rad,0);
+         addNormal(horizontalEdgePoints[x][y],x,y,false,-1,0.01);
       }
    }
 }

@@ -20,8 +20,8 @@ function initializeArrays(){
       verticalEdges[i] = [];
       horizontalEdges[i] = [];
       for(j=0;j<gridHeight;j++){
-         verticalEdges[i][j]={p:0,nx:1,ny:0};//no intersection
-         horizontalEdges[i][j]={p:0,nx:0,ny:1};//no intersection
+         verticalEdges[i][j]={p:0,nx:1,ny:1};//no intersection
+         horizontalEdges[i][j]={p:0,nx:1,ny:1};//no intersection
       }
    }
 }
@@ -61,42 +61,50 @@ function updateSquare(x,y){
    //recompute current gridposition
    var px=0.0,py=0.0,sx=0.0,sy=0.0;
    if(gridHasSignChange(x,y)){
-      var p,n;
+      var p,n,nx,ny;
       if(edgeHasSignChange(x,y,true)){
          p = getIntersectionPoint(x,y,true,0,0);
          n = verticalEdges[x][y];
-         px+=p.x*n.nx*n.nx;
-         sx+=n.nx*n.nx;
-         py+=p.y*n.ny*n.ny;
-         sy+=n.ny*n.ny;
+         nx=n.nx*n.nx;ny=n.ny*n.ny;
+         //if(nx+ny<0.01){nx=0.5;ny=0.5;}
+         px+=p.x*nx;
+         sx+=nx;
+         py+=p.y*ny;
+         sy+=ny;
       }
       if(edgeHasSignChange(x,y,false)){
          p = getIntersectionPoint(x,y,false,0,0);
          n = horizontalEdges[x][y];
-         px+=p.x*n.nx*n.nx;
-         sx+=n.nx*n.nx;
-         py+=p.y*n.ny*n.ny;
-         sy+=n.ny*n.ny;
+         nx=n.nx*n.nx;ny=n.ny*n.ny;
+         //if(nx+ny<0.01){nx=0.5;ny=0.5;}
+         px+=p.x*nx;
+         sx+=nx;
+         py+=p.y*ny;
+         sy+=ny;
       }
       if(edgeHasSignChange(x+1,y,true)){
          p = getIntersectionPoint(x+1,y,true,1,0);
          n = verticalEdges[x+1][y];
-         px+=p.x*n.nx*n.nx;
-         sx+=n.nx*n.nx;
-         py+=p.y*n.ny*n.ny;
-         sy+=n.ny*n.ny;
+         nx=n.nx*n.nx;ny=n.ny*n.ny;
+         //if(nx+ny<0.01){nx=0.5;ny=0.5;}
+         px+=p.x*nx;
+         sx+=nx;
+         py+=p.y*ny;
+         sy+=ny;
       }
       if(edgeHasSignChange(x,y+1,false)){
          p = getIntersectionPoint(x,y+1,false,0,1);
          n = horizontalEdges[x][y+1];
-         px+=p.x*n.nx*n.nx;
-         sx+=n.nx*n.nx;
-         py+=p.y*n.ny*n.ny;
-         sy+=n.ny*n.ny;
+         nx=n.nx*n.nx;ny=n.ny*n.ny;
+         //if(nx+ny<0.01){nx=0.5;ny=0.5;}
+         px+=p.x*nx;
+         sx+=nx;
+         py+=p.y*ny;
+         sy+=ny;
       }
       px/=sx;
       py/=sy;
-      //px = clamp(px,0,1);
+      //px = clamp(px,0,1);//it doesn't seem to be needed?
       //py = clamp(py,0,1);
       positions[x][y] = {x:px,y:py};
       renderer_updatePosition(x,y,px,py);
