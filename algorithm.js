@@ -57,27 +57,60 @@ function getIntersectionPoint(x,y,isVertical,dx,dy){
 }
 ///QEF
 
+function add(a,b){
+   return {x:a.x+b.x,y:a.y+b.y};
+}
+
 function mul(v,x){
    return {x:v.x*x,y:v.y*x};
+}
+
+function vec(from, to){
+   return {x:to.x-from.x,y:to.y-from.y};
+}
+
+function cross(a,b){
+   return a.x*b.y - b.x*a.y;
 }
 
 function dot(a,b){
    return a.x*b.x+a.y*b.y;
 }
 
+function len(v){
+   return Math.sqrt(v.x*v.x+v.y*v.y);
+}
+
+function normalize(v){
+   return mul(v,1/len(v));
+}
+
 function normalToRightVector(normal){
    return {x:-normal.y,y:normal.x};
 }
 
-function projection(planeNormal, point){
-   var plane = normalToRightVector(planeNormal);
-   return mul(plane, dot(point,plane));
+function projection(planeNormal, planePoint, point){
+   //console.log(planeNormal, planePoint, point);
+   //console.log(planePoint);
+   /*var plane = normalToRightVector(planeNormal);
+   var p = add(point,mul(planePoint,-1));//convert to planePoint based coord
+   //console.log(plane,p);
+   p = mul(plane, dot(point,plane));//project onto plane
+   p = add(p, planePoint);//go back to our coords*/
+
+   //distance of point is the projection of pp vector onto plane normal
+   //planeNormal=normalize(planeNormal);
+   var v = vec(planePoint,point);
+   v = mul(v,dot(planeNormal, v));
+   //console.log(p,v);
+   var p = mul(planeNormal,len(v));//moving from point onto plane
+   if(cross(normalToRightVector(planeNormal),v)>0) return add(point,mul(p,-1));
+   else return add(point,p);
 }
 
 function updateSquare(x,y){
    if(x<0||y<0) return;
    //recompute current gridposition
-   var px=0.0,py=0.0;
    if(gridHasSignChange(x,y)){
       var intersections = [];
       if(edgeHasSignChange(x,y,true)){
@@ -92,23 +125,28 @@ function updateSquare(x,y){
       if(edgeHasSignChange(x,y+1,false)){
          intersections.push({p:getIntersectionPoint(x,y+1,false,0,1),n:horizontalEdges[x][y+1]});
       }
-
-      var sx=0.0,sy=0.0;
-      for(var i=0;i<intersections.length;i++){
-         var p = intersections[i].p;
-         var n = intersections[i].n;
-         px+=p.x*n.nx*n.nx;
-         sx+=n.nx*n.nx;
-         py+=p.y*n.ny*n.ny;
-         sy+=n.ny*n.ny;
+      for(var ii=0;ii<intersections.length;ii++){
+         intersections[ii].n  = {x:intersections[ii].n.nx,y:intersections[ii].n.ny};
       }
-      px/=sx;
-      py/=sy;
+
+      var point = {x:0.5,y:0.5};
+      var NUMITERATIONS = 4;
+      for(var step=0;step<NUMITERATIONS;step++){
+         var move = {x:0,y:0};
+         for(var i=0;i<intersections.length;i++){
+            var p = intersections[i].p;
+            var n = intersections[i].n;
+            move = add(move, vec(point, projection(n,p,point)));
+            //console.log(point,p,n, projection(n,p,point));
+         }
+         move = mul(move,0.2);
+         point = add(point,move);
+      }
 
       //px = clamp(px,0,1);//it doesn't seem to be needed?
       //py = clamp(py,0,1);
-      positions[x][y] = {x:px,y:py};
-      renderer_updatePosition(x,y,px,py);
+      positions[x][y] = point;
+      renderer_updatePosition(x,y,point.x,point.y);
       //console.log(x,y,px,py,sx,sy);
    }else{
       positions[x][y].x=0.5;//reset
